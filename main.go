@@ -11,6 +11,8 @@ import (
 	"go.bug.st/serial"
 )
 
+var addr = flag.String("addr", ":8080", "Socket.io server address")
+
 var pipeLen = flag.Int("pipe-len", 100, "Length of sample buffer") // ~0.5s
 
 var min = flag.Float64("min", 1000, "Sample range minimum")
@@ -25,6 +27,12 @@ func main() {
 	// parse flags
 	flag.Parse()
 
+	// create stream
+	stream, err := createStream()
+	if err != nil {
+		panic(err)
+	}
+
 	// prepare pipe
 	pipe := make(chan sample, *pipeLen)
 
@@ -32,10 +40,10 @@ func main() {
 	go read(pipe)
 
 	// process values
-	go process(pipe)
+	go process(pipe, stream)
 
-	// block
-	select {}
+	// run stream
+	panic(stream.run(*addr))
 }
 
 func read(pipe chan<- sample) {
@@ -106,7 +114,7 @@ func read(pipe chan<- sample) {
 	}
 }
 
-func process(pipe <-chan sample) {
+func process(pipe <-chan sample, stream *stream) {
 	// prepare window
 	wMax := newWindow(*maxWindow)
 
@@ -127,6 +135,9 @@ func process(pipe <-chan sample) {
 		for i, v := range values {
 			scaled[i] = clamp(scale(v, *min, max, 0, 1), 0, 1)
 		}
+
+		// emit
+		stream.emit(values)
 
 		// debug
 		if *debug {
