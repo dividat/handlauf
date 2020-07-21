@@ -2,35 +2,27 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/kr/pretty"
 	"go.bug.st/serial"
 )
 
-type sample []float64
+const pipeLen = 100 // ~0.5s
 
-func (s sample) minMax() (float64, float64) {
-	// find min and max
-	var max = s[0]
-	var min = s[0]
-	for _, value := range s {
-		if max < value {
-			max = value
-		}
-		if min > value {
-			min = value
-		}
-	}
+const min = 1000
 
-	return min, max
-}
+const maxWindow = 1000 // ~10s
+const maxMin = 2000
+const maxMax = 20_000
+
+const debug = true
 
 func main() {
 	// prepare pipe
-	pipe := make(chan sample, 100)
+	pipe := make(chan sample, pipeLen)
 
 	// read values
 	go read(pipe)
@@ -111,9 +103,30 @@ func read(pipe chan<- sample) {
 }
 
 func process(pipe <-chan sample) {
-	t := time.Now()
+	// prepare window
+	wMax := newWindow(maxWindow)
+
+	// process values
 	for values := range pipe {
-		pretty.Println(values, time.Since(t).String())
-		t = time.Now()
+		// add min and max
+		_, vMax := values.minMax()
+		wMax.add(vMax)
+
+		// get max
+		_, max := wMax.minMax()
+
+		// adjust max
+		max = clamp(max/2, maxMin, maxMax)
+
+		// scale
+		scaled := make(sample, len(values))
+		for i, v := range values {
+			scaled[i] = clamp(scale(v, min, max, 0, 1), 0, 1)
+		}
+
+		// debug
+		if debug {
+			fmt.Printf("Values: %s | Max: %.0f\n", scaled.String(), max)
+		}
 	}
 }

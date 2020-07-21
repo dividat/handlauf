@@ -1,7 +1,7 @@
 #include <CapacitiveSensor.h>
 #include <Ewma.h>
 
-#define FILTER 0.05
+#define FILTER 0.1
 
 #define SAMPLES 5
 
