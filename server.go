@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"strconv"
 	"strings"
@@ -10,19 +11,22 @@ import (
 	"go.bug.st/serial"
 )
 
-const pipeLen = 100 // ~0.5s
+var pipeLen = flag.Int("pipe-len", 100, "Length of sample buffer") // ~0.5s
 
-const min = 1000
+var min = flag.Float64("min", 1000, "Sample range minimum")
 
-const maxWindow = 1000 // ~10s
-const maxMin = 2000
-const maxMax = 20_000
+var maxWindow = flag.Int("max-window", 1000, "Maximum window size") // ~10s
+var maxMin = flag.Float64("max-min", 2000, "Maximum range minimum")
+var maxMax = flag.Float64("max-max", 20_000, "Maximum range maximum")
 
-const debug = true
+var debug = flag.Bool("debug", false, "Debug mode")
 
 func main() {
+	// parse flags
+	flag.Parse()
+
 	// prepare pipe
-	pipe := make(chan sample, pipeLen)
+	pipe := make(chan sample, *pipeLen)
 
 	// read values
 	go read(pipe)
@@ -104,7 +108,7 @@ func read(pipe chan<- sample) {
 
 func process(pipe <-chan sample) {
 	// prepare window
-	wMax := newWindow(maxWindow)
+	wMax := newWindow(*maxWindow)
 
 	// process values
 	for values := range pipe {
@@ -116,16 +120,16 @@ func process(pipe <-chan sample) {
 		_, max := wMax.minMax()
 
 		// adjust max
-		max = clamp(max/2, maxMin, maxMax)
+		max = clamp(max/2, *maxMin, *maxMax)
 
 		// scale
 		scaled := make(sample, len(values))
 		for i, v := range values {
-			scaled[i] = clamp(scale(v, min, max, 0, 1), 0, 1)
+			scaled[i] = clamp(scale(v, *min, max, 0, 1), 0, 1)
 		}
 
 		// debug
-		if debug {
+		if *debug {
 			fmt.Printf("Values: %s | Max: %.0f\n", scaled.String(), max)
 		}
 	}
