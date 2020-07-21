@@ -3,10 +3,7 @@
 
 #define FILTER 0.05
 
-#define SAMPLES 2
-
-#define MINIMUM 1
-#define MAXIMUM 100000
+#define SAMPLES 5
 
 CapacitiveSensor s1 = CapacitiveSensor(6, 0);
 CapacitiveSensor s2 = CapacitiveSensor(6, 1);
@@ -41,12 +38,12 @@ void loop() {
   float r5 = (float) s5.capacitiveSensor(SAMPLES);
   float r6 = (float) s6.capacitiveSensor(SAMPLES);
   
-  float v1 = limit(f1.filter(r1));
-  float v2 = limit(f2.filter(r2));
-  float v3 = limit(f3.filter(r3));
-  float v4 = limit(f4.filter(r4));
-  float v5 = limit(f5.filter(r5));
-  float v6 = limit(f6.filter(r6));
+  float v1 = f1.filter(r1);
+  float v2 = f2.filter(r2);
+  float v3 = f3.filter(r3);
+  float v4 = f4.filter(r4);
+  float v5 = f5.filter(r5);
+  float v6 = f6.filter(r6);
 
   Serial.print(v1);
   Serial.print(",");
@@ -60,14 +57,4 @@ void loop() {
   Serial.print(",");
   Serial.print(v6);
   Serial.println();
-}
-
-float limit(float in) { 
-  if (in < MINIMUM) {
-    return 0;
-  } else if (in > MAXIMUM) {
-    return MAXIMUM - MINIMUM;
-  }
-
-  return in - MINIMUM;
 }

@@ -10,9 +10,27 @@ import (
 	"go.bug.st/serial"
 )
 
+type sample []float64
+
+func (s sample) minMax() (float64, float64) {
+	// find min and max
+	var max = s[0]
+	var min = s[0]
+	for _, value := range s {
+		if max < value {
+			max = value
+		}
+		if min > value {
+			min = value
+		}
+	}
+
+	return min, max
+}
+
 func main() {
 	// prepare pipe
-	pipe := make(chan []float64, 100)
+	pipe := make(chan sample, 100)
 
 	// read values
 	go read(pipe)
@@ -24,7 +42,7 @@ func main() {
 	select {}
 }
 
-func read(pipe chan<- []float64) {
+func read(pipe chan<- sample) {
 	for {
 		// get list
 		list, err := serial.GetPortsList()
@@ -76,24 +94,26 @@ func read(pipe chan<- []float64) {
 			// split
 			parts := strings.Split(line, ",")
 
-			// decode values
-			values := make([]float64, 0, len(parts))
+			// decode sample
+			sample := make(sample, 0, len(parts))
 			for _, seg := range parts {
 				value, _ := strconv.ParseFloat(seg, 64)
-				values = append(values, value)
+				sample = append(sample, value)
 			}
 
-			// send or drop
+			// send or drop sample
 			select {
-			case pipe <- values:
+			case pipe <- sample:
 			default:
 			}
 		}
 	}
 }
 
-func process(pipe <-chan []float64) {
+func process(pipe <-chan sample) {
+	t := time.Now()
 	for values := range pipe {
-		pretty.Println(values)
+		pretty.Println(values, time.Since(t).String())
+		t = time.Now()
 	}
 }
