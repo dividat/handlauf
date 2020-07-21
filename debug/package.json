@@ -1,0 +1,12 @@
+{
+  "name": "debug",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "mqtt": "^4.1.0",
+    "parcel": "^1.12.4"
+  },
+  "scripts": {
+    "start": "parcel index.html"
+  }
+}

@@ -137,7 +137,7 @@ func process(pipe <-chan sample, stream *stream) {
 		}
 
 		// emit
-		stream.emit(values)
+		stream.emit(scaled)
 
 		// debug
 		if *debug {
