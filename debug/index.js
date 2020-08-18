@@ -14,8 +14,9 @@ const svg = d3.select('#viz');
 
 const xAxis = svg.append('g');
 const yAxis = svg.append('g');
+const paths = svg.append('g');
 
-const path = svg.append('path');
+const colors = d3.scaleOrdinal(d3.schemeCategory10);
 
 function viz() {
   if (list.length === 0) {
@@ -29,30 +30,29 @@ function viz() {
 
   xAxis.attr('transform', 'translate(50,' + (50 + height) + ')').call(d3.axisBottom(x));
 
-  const y = d3
-    .scaleLinear()
-    .domain([0, d3.max(list, (d) => d3.max(d.sample))])
-    .range([height, 0]);
+  const y = d3.scaleLinear().domain([0, 1]).range([height, 0]);
 
   yAxis.attr('transform', 'translate(50,50)').call(d3.axisLeft(y));
 
-  // Add the line
-  path
-    .datum(list)
+  const line = (i) => {
+    return d3
+      .line()
+      .x(function (d) {
+        return 50 + x(d.time);
+      })
+      .y(function (d) {
+        return 50 + y(d.sample[i]);
+      });
+  };
+
+  paths
+    .selectAll('path')
+    .data(new Array(list[0].sample.length))
+    .join('path')
     .attr('fill', 'none')
-    .attr('stroke', 'steelblue')
-    .attr('stroke-width', 1.5)
-    .attr(
-      'd',
-      d3
-        .line()
-        .x(function (d) {
-          return 50 + x(d.time);
-        })
-        .y(function (d) {
-          return 50 + y(d.sample[0]);
-        })
-    );
+    .attr('stroke', (_, i) => colors(i))
+    .attr('stroke-width', 2)
+    .attr('d', (_, i) => line(i)(list));
 }
 
 /* WebSocket */
