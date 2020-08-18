@@ -103,6 +103,9 @@ func read(pipe chan<- sample) {
 				continue
 			}
 
+			// remove space
+			line = strings.TrimSpace(line)
+
 			// split
 			parts := strings.Split(line, ",")
 
