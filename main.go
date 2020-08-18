@@ -11,7 +11,7 @@ import (
 	"go.bug.st/serial"
 )
 
-var addr = flag.String("addr", ":8080", "Socket.io server address")
+var addr = flag.String("addr", ":8080", "WebSocket server address")
 
 var pipeLen = flag.Int("pipe-len", 100, "Length of sample buffer") // ~0.5s
 

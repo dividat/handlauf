@@ -1,4 +1,3 @@
-import mqtt from 'mqtt';
 import * as d3 from 'd3';
 import WebSocket from 'reconnecting-websocket';
 

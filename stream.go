@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -32,7 +31,7 @@ func createStream(addr string) (*stream, error) {
 		// perform upgrade
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Print("upgrade:", err)
+			println(err.Error())
 			return
 		}
 
