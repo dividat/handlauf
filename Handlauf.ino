@@ -5,6 +5,8 @@
 
 #define SAMPLES 5
 
+#define DELAY 1 // 1KHz
+
 CapacitiveSensor s1 = CapacitiveSensor(6, 0);
 CapacitiveSensor s2 = CapacitiveSensor(6, 1);
 CapacitiveSensor s3 = CapacitiveSensor(6, 2);
@@ -57,4 +59,6 @@ void loop() {
   Serial.print(",");
   Serial.print(v6);
   Serial.println();
+
+  delay(DELAY);
 }
