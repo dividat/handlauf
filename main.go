@@ -19,7 +19,9 @@ var min = flag.Float64("min", 1000, "Sample range minimum")
 
 var maxWindow = flag.Int("max-window", 1000, "Maximum window size") // ~10s
 var maxMin = flag.Float64("max-min", 2000, "Maximum range minimum")
-var maxMax = flag.Float64("max-max", 20_000, "Maximum range maximum")
+var maxMax = flag.Float64("max-max", 20000, "Maximum range maximum")
+
+var freq = flag.Int("freq", 60, "Sample publish frequency")
 
 var debug = flag.Bool("debug", false, "Debug mode")
 
@@ -115,8 +117,14 @@ func read(pipe chan<- sample) {
 }
 
 func process(pipe <-chan sample, stream *stream) {
+	// timeout
+	timeout := time.Second / time.Duration(*freq)
+
 	// prepare window
 	wMax := newWindow(*maxWindow)
+
+	// prepare last
+	last := time.Now()
 
 	// process values
 	for values := range pipe {
@@ -136,8 +144,14 @@ func process(pipe <-chan sample, stream *stream) {
 			scaled[i] = clamp(scale(v, *min, max, 0, 1), 0, 1)
 		}
 
+		// get now
+		now := time.Now()
+
 		// emit
-		stream.emit(scaled)
+		if now.Sub(last) > timeout {
+			stream.emit(scaled)
+			last = now
+		}
 
 		// debug
 		if *debug {
