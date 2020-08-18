@@ -11,7 +11,7 @@ import (
 	"go.bug.st/serial"
 )
 
-var addr = flag.String("addr", "ws://0.0.0.0:8080", "Socket.io server address")
+var addr = flag.String("addr", ":8080", "Socket.io server address")
 
 var pipeLen = flag.Int("pipe-len", 100, "Length of sample buffer") // ~0.5s
 
@@ -155,7 +155,7 @@ func process(pipe <-chan sample, stream *stream) {
 
 		// debug
 		if *debug {
-			fmt.Printf("Values: %s | Max: %.0f | Clients: %d\n", scaled.String(), max, stream.clients)
+			fmt.Printf("Values: %s | Max: %.0f | Clients: %d\n", scaled.String(), max, stream.size)
 		}
 	}
 }

@@ -2,12 +2,16 @@
   "name": "debug",
   "version": "1.0.0",
   "main": "index.js",
+  "scripts": {
+    "start": "parcel index.html",
+    "fmt": "prettier --single-quote --print-width 120 --write '*.{html,js}'"
+  },
   "dependencies": {
     "d3": "^5.16.0",
-    "mqtt": "^4.1.0",
-    "parcel": "^1.12.4"
+    "reconnecting-websocket": "^4.4.0"
   },
-  "scripts": {
-    "start": "parcel index.html"
+  "devDependencies": {
+    "parcel": "^1.12.4",
+    "prettier": "^2.0.5"
   }
 }
