@@ -8,10 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/256dpi/god"
 	"go.bug.st/serial"
 )
 
-var addr = flag.String("addr", ":8080", "WebSocket server address")
+var addr = flag.String("addr", "0.0.0.0:8080", "WebSocket server address")
 
 var pipeLen = flag.Int("pipe-len", 100, "Length of sample buffer") // ~0.5s
 
@@ -28,6 +29,11 @@ var debug = flag.Bool("debug", false, "Debug mode")
 func main() {
 	// parse flags
 	flag.Parse()
+
+	// run debug
+	if *debug {
+		god.Init(god.Options{})
+	}
 
 	// create stream
 	stream, err := createStream(*addr)
