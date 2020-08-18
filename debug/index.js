@@ -15,6 +15,7 @@ const svg = d3.select('#viz');
 const xAxis = svg.append('g');
 const yAxis = svg.append('g');
 const lines = svg.append('g');
+const bars = svg.append('g');
 
 const colors = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -39,7 +40,7 @@ function viz() {
   // apply y scale
   yAxis.attr('transform', 'translate(50,50)').call(d3.axisLeft(yScale));
 
-  // prepare lin generator
+  // prepare line generator
   const line = (i) => {
     return d3
       .line()
@@ -51,15 +52,29 @@ function viz() {
       });
   };
 
+  // prepare proto
+  const proto = new Array(d3.max(list, (d) => d.sample.length));
+
   // update lines
   lines
     .selectAll('path')
-    .data(new Array(d3.max(list, d => d.sample.length)))
+    .data(proto)
     .join('path')
     .attr('fill', 'none')
     .attr('stroke', (_, i) => colors(i))
     .attr('stroke-width', 2)
     .attr('d', (_, i) => line(i)(list));
+
+  // update bars
+  bars
+    .selectAll('rect')
+    .data(proto)
+    .join('rect')
+    .attr('fill', (_, i) => colors(i))
+    .attr('x', (_, i) => 100)
+    .attr('y', (_, i) => 50 + i * 50)
+    .attr('height', 50)
+    .attr('width', (_, i) => 5 + list[list.length - 1].sample[i] * (width - 100));
 }
 
 /* WebSocket */
