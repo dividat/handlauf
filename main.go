@@ -100,7 +100,7 @@ func read(pipe chan<- sample) {
 			if err != nil {
 				println(err.Error())
 				_ = device.Close()
-				continue
+				break
 			}
 
 			// remove space
