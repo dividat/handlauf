@@ -10,8 +10,6 @@ import (
 
 var addr = flag.String("addr", "0.0.0.0:8080", "WebSocket server address")
 
-var pipeLen = flag.Int("pipe-len", 100, "Length of sample buffer") // ~0.5s
-
 var min = flag.Float64("min", 1000, "Sample range minimum")
 
 var maxWindow = flag.Int("max-window", 1000, "Maximum window size") // ~10s
