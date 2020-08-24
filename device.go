@@ -19,6 +19,7 @@ var left atomic.Value
 var right atomic.Value
 
 func init() {
+	// initialize
 	left.Store(make(sample, 6))
 	right.Store(make(sample, 6))
 }
@@ -37,9 +38,12 @@ func manage() {
 		for _, name := range list {
 			if strings.Contains(name, "cu.usbmodem") {
 				if _, ok := devices.Load(name); !ok {
-					fmt.Printf("manage: added device %s\n", name)
+					// add device
 					devices.Store(name, true)
 					atomic.AddInt64(&numDevices, 1)
+					fmt.Printf("manage: added device %s\n", name)
+
+					// read
 					go read(name)
 				}
 			}
@@ -55,6 +59,7 @@ func read(name string) {
 	defer func() {
 		devices.Delete(name)
 		atomic.AddInt64(&numDevices, -1)
+		fmt.Printf("read: removed device %s\n", name)
 	}()
 
 	// open device

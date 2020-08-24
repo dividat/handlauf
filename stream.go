@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -26,11 +27,12 @@ func stream(addr string) {
 		// perform upgrade
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			println(err.Error())
+			fmt.Printf("stream: %s\n", err.Error())
 			return
 		}
 
 		// add client
+		fmt.Printf("stream: added client %s\n", conn.RemoteAddr().String())
 		clients.Store(conn, nil)
 		atomic.AddInt64(&numClients, 1)
 	})
@@ -55,10 +57,11 @@ func emit(values sample) {
 		// write message
 		err := conn.WriteMessage(websocket.TextMessage, payload)
 		if err != nil {
+			fmt.Printf("emit: %s\n", err.Error())
 			_ = conn.Close()
 			clients.Delete(key)
 			atomic.AddInt64(&numClients, -1)
-			println(err.Error())
+			fmt.Printf("emit: removed client %s", conn.RemoteAddr().String())
 		}
 
 		return true
