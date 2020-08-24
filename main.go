@@ -38,10 +38,7 @@ func main() {
 	go manage()
 
 	// process samples
-	go process()
-
-	// run stream
-	select {}
+	process()
 }
 
 func process() {
