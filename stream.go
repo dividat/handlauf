@@ -9,16 +9,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type stream struct {
-	size    int64
-	clients sync.Map
-	server  *http.Server
-}
+var clients sync.Map
+var numClients int64
+var server *http.Server
 
-func createStream(addr string) (*stream, error) {
-	// prepare stream
-	stream := &stream{}
-
+func stream(addr string) {
 	// prepare upgrader
 	var upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -36,20 +31,16 @@ func createStream(addr string) (*stream, error) {
 		}
 
 		// add client
-		stream.clients.Store(conn, nil)
-		atomic.AddInt64(&stream.size, 1)
+		clients.Store(conn, nil)
+		atomic.AddInt64(&numClients, 1)
 	})
 
 	// run server
-	go func() {
-		stream.server = &http.Server{Addr: addr, Handler: handler}
-		panic(stream.server.ListenAndServe())
-	}()
-
-	return stream, nil
+	server = &http.Server{Addr: addr, Handler: handler}
+	panic(server.ListenAndServe())
 }
 
-func (s *stream) emit(values sample) {
+func emit(values sample) {
 	// encode
 	payload, err := json.Marshal(values)
 	if err != nil {
@@ -57,7 +48,7 @@ func (s *stream) emit(values sample) {
 	}
 
 	// broadcast
-	s.clients.Range(func(key, _ interface{}) bool {
+	clients.Range(func(key, _ interface{}) bool {
 		// get conn
 		conn := key.(*websocket.Conn)
 
@@ -65,15 +56,11 @@ func (s *stream) emit(values sample) {
 		err := conn.WriteMessage(websocket.TextMessage, payload)
 		if err != nil {
 			_ = conn.Close()
-			s.clients.Delete(key)
-			atomic.AddInt64(&s.size, -1)
+			clients.Delete(key)
+			atomic.AddInt64(&numClients, -1)
 			println(err.Error())
 		}
 
 		return true
 	})
-}
-
-func (s *stream) close() {
-	_ = s.server.Close()
 }

@@ -1,15 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/256dpi/god"
-	"go.bug.st/serial"
 )
 
 var addr = flag.String("addr", "0.0.0.0:8080", "WebSocket server address")
@@ -35,136 +31,64 @@ func main() {
 		god.Init(god.Options{})
 	}
 
-	// create stream
-	stream, err := createStream(*addr)
-	if err != nil {
-		panic(err)
-	}
+	// open stream
+	go stream(*addr)
 
-	// prepare pipe
-	pipe := make(chan sample, *pipeLen)
+	// manage devices
+	go manage()
 
-	// read values
-	go read(pipe)
-
-	// process values
-	go process(pipe, stream)
+	// process samples
+	go process()
 
 	// run stream
 	select {}
 }
 
-func read(pipe chan<- sample) {
-	for {
-		// get list
-		list, err := serial.GetPortsList()
-		if err != nil {
-			println(err.Error())
-			time.Sleep(time.Second)
-			continue
-		}
-
-		// check port
-		var port string
-		for _, name := range list {
-			if strings.Contains(name, "usbmodem") {
-				port = name
-			}
-		}
-		if port == "" {
-			println("no device")
-			time.Sleep(time.Second)
-			continue
-		}
-
-		// open device
-		device, err := serial.Open(port, &serial.Mode{
-			BaudRate: 115200,
-			DataBits: 7,
-			Parity:   serial.NoParity,
-			StopBits: serial.OneStopBit,
-		})
-		if err != nil {
-			println(err.Error())
-			time.Sleep(time.Second)
-			continue
-		}
-
-		// prepare reader
-		reader := bufio.NewReader(device)
-
-		// read data
-		for {
-			// read line
-			line, err := reader.ReadString('\n')
-			if err != nil {
-				println(err.Error())
-				_ = device.Close()
-				break
-			}
-
-			// remove space
-			line = strings.TrimSpace(line)
-
-			// split
-			parts := strings.Split(line, ",")
-
-			// decode sample
-			sample := make(sample, 0, len(parts))
-			for _, seg := range parts {
-				value, _ := strconv.ParseFloat(seg, 64)
-				sample = append(sample, value)
-			}
-
-			// send or drop sample
-			select {
-			case pipe <- sample:
-			default:
-			}
-		}
-	}
-}
-
-func process(pipe <-chan sample, stream *stream) {
+func process() {
 	// timeout
 	timeout := time.Second / time.Duration(*freq)
 
-	// prepare window
-	wMax := newWindow(*maxWindow)
+	// prepare windows
+	lwMax := newWindow(*maxWindow)
+	rwMax := newWindow(*maxWindow)
 
-	// prepare last
-	last := time.Now()
+	for {
+		// get samples
+		l := left.Load().(sample)
+		r := right.Load().(sample)
 
-	// process values
-	for values := range pipe {
 		// add min and max
-		_, vMax := values.minMax()
-		wMax.add(vMax)
+		_, lvMax := l.minMax()
+		_, rvMax := r.minMax()
+		lwMax.add(lvMax)
+		rwMax.add(rvMax)
 
 		// get max
-		_, max := wMax.minMax()
+		_, lMax := lwMax.minMax()
+		_, rMax := rwMax.minMax()
 
 		// adjust max
-		max = clamp(max/2, *maxMin, *maxMax)
+		lMax = clamp(lMax/2, *maxMin, *maxMax)
+		rMax = clamp(rMax/2, *maxMin, *maxMax)
 
-		// scale
-		scaled := make(sample, len(values))
-		for i, v := range values {
-			scaled[i] = clamp(scale(v, *min, max, 0, 1), 0, 1)
+		// get result
+		result := make(sample, 12)
+		for i, v := range l {
+			result[i] = clamp(scale(v, *min, lMax, 0, 1), 0, 1)
 		}
-
-		// get now
-		now := time.Now()
+		for i, v := range r {
+			result[i+6] = clamp(scale(v, *min, rMax, 0, 1), 0, 1)
+		}
 
 		// emit
-		if now.Sub(last) > timeout {
-			stream.emit(scaled)
-			last = now
-		}
+		emit(result)
 
 		// debug
 		if *debug {
-			fmt.Printf("Values: %s | Max: %.0f | Clients: %d\n", scaled.String(), max, stream.size)
+			fmt.Printf("Values: %s | Max: %.0f %.0f | Devices: %d | Clients: %d\n", result.String(), lMax, rMax, numDevices, numClients)
 		}
+
+		// sleep
+		time.Sleep(timeout)
 	}
 }

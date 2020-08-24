@@ -1,6 +1,8 @@
 #include <CapacitiveSensor.h>
 #include <Ewma.h>
 
+#define ORIENTATION "L"
+
 #define FILTER 0.1
 
 #define SAMPLES 5
@@ -47,6 +49,8 @@ void loop() {
   float v5 = f5.filter(r5);
   float v6 = f6.filter(r6);
 
+  Serial.print(ORIENTATION);
+  Serial.print(",");
   Serial.print(v1);
   Serial.print(",");
   Serial.print(v2);
