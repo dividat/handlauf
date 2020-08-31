@@ -6,15 +6,12 @@ import (
 	"time"
 
 	"github.com/256dpi/god"
+	"github.com/VividCortex/gohistogram"
 )
 
 var addr = flag.String("addr", "0.0.0.0:8080", "WebSocket server address")
 
-var min = flag.Float64("min", 1000, "Sample range minimum")
-
-var maxWindow = flag.Int("max-window", 1000, "Maximum window size") // ~10s
-var maxMin = flag.Float64("max-min", 2000, "Maximum range minimum")
-var maxMax = flag.Float64("max-max", 20000, "Maximum range maximum")
+var minRange = flag.Float64("min-range", 1000, "The minimum range")
 
 var freq = flag.Int("freq", 60, "Sample publish frequency")
 
@@ -43,36 +40,45 @@ func process() {
 	// timeout
 	timeout := time.Second / time.Duration(*freq)
 
-	// prepare windows
-	lwMax := newWindow(*maxWindow)
-	rwMax := newWindow(*maxWindow)
+	// prepare histograms
+	var histogram []gohistogram.Histogram
+	for i := 0; i < 12; i++ {
+		histogram = append(histogram, gohistogram.NewHistogram(80))
+	}
 
 	for {
 		// get samples
 		l := left.Load().(sample)
 		r := right.Load().(sample)
 
-		// add min and max
-		_, lvMax := l.minMax()
-		_, rvMax := r.minMax()
-		lwMax.add(lvMax)
-		rwMax.add(rvMax)
+		// merge samples
+		s := make(sample, 12)
+		copy(s, l)
+		copy(s[6:], r)
 
-		// get max
-		_, lMax := lwMax.minMax()
-		_, rMax := rwMax.minMax()
-
-		// adjust max
-		lMax = clamp(lMax/2, *maxMin, *maxMax)
-		rMax = clamp(rMax/2, *maxMin, *maxMax)
-
-		// get result
+		// prepare result
 		result := make(sample, 12)
-		for i, v := range l {
-			result[i] = clamp(scale(v, *min, lMax, 0, 1), 0, 1)
-		}
-		for i, v := range r {
-			result[i+6] = clamp(scale(v, *min, rMax, 0, 1), 0, 1)
+
+		// calculate result
+		for i, v := range s {
+			// add to histogram
+			histogram[i].Add(v)
+			histogram[i].Add(v)
+
+			// get quantiles
+			min := histogram[i].Quantile(0.2)
+			max := histogram[i].Quantile(0.8)
+
+			// adjust max
+			if max < min+*minRange {
+				max = min + *minRange
+			}
+
+			// get value
+			v := clamp(scale(v, min, max, 0, 1), 0, 1)
+
+			// set result
+			result[i] = v
 		}
 
 		// emit
@@ -80,7 +86,7 @@ func process() {
 
 		// debug
 		if *debug {
-			fmt.Printf("Values: %s | Max: %.0f %.0f | Devices: %d | Clients: %d\n", result.String(), lMax, rMax, numDevices, numClients)
+			fmt.Printf("Values: %s | Devices: %d | Clients: %d\n", result.String(), numDevices, numClients)
 		}
 
 		// sleep
