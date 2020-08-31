@@ -20,6 +20,9 @@ const bars = svg.append('g');
 const colors = d3.scaleOrdinal(d3.schemeCategory10);
 
 function viz() {
+  // queue next render
+  requestAnimationFrame(viz);
+
   // check length
   if (list.length === 0) {
     return;
@@ -98,7 +101,6 @@ ws.onmessage = (event) => {
   while (list.length > 1000) {
     list.shift();
   }
-
-  // update
-  viz();
 };
+
+requestAnimationFrame(viz);
