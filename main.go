@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/256dpi/god"
@@ -17,15 +18,18 @@ var threshold = flag.Float64("threshold", 0, "The threshold for on/off values")
 
 var freq = flag.Int("freq", 60, "Sample publish frequency")
 
-var debug = flag.Bool("debug", false, "Debug mode")
+var debug = flag.String("debug", "", "Debug mode")
 
 func main() {
 	// parse flags
 	flag.Parse()
 
 	// run debug
-	if *debug {
+	if *debug != "" {
 		god.Init(god.Options{})
+		go func() {
+			panic(http.ListenAndServe(*debug, uiHandler()))
+		}()
 	}
 
 	// open stream
@@ -104,7 +108,7 @@ func process() {
 		_, max := maximums.minMax()
 
 		// debug
-		if *debug {
+		if *debug != "" {
 			fmt.Printf("Values: %s | Range %.2f - %.2f |  Devices: %d | Clients: %d\n", result.String(), min, max, numDevices, numClients)
 		}
 

@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel index.html",
+    "build": "parcel build index.html -d build",
     "fmt": "prettier --single-quote --print-width 120 --write '*.{html,js}'"
   },
   "dependencies": {
