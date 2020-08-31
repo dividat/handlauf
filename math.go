@@ -20,6 +20,22 @@ func clamp(v, min, max float64) float64 {
 
 type sample []float64
 
+func (s sample) minMax() (float64, float64) {
+	// find min and max
+	var max = s[0]
+	var min = s[0]
+	for _, value := range s {
+		if max < value {
+			max = value
+		}
+		if min > value {
+			min = value
+		}
+	}
+
+	return min, max
+}
+
 func (s sample) String() string {
 	b := make([]byte, 0, 128)
 	for i, v := range s {
