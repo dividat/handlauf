@@ -16,7 +16,10 @@ manager.
 ## Driver
 
 The `*.go` files make up the Go based driver for the sensor. It can be built
-using the standard Go mechanisms. The binary provides the following options:
+using the standard Go mechanisms. A compiled version for macOS is available on
+the release page: https://github.com/256dpi/handlauf/releases. 
+
+The binary provides the following options:
 
 ```
 Usage of ./handlauf:
