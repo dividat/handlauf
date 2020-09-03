@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/256dpi/god"
 	"github.com/VividCortex/gohistogram"
 )
 
@@ -18,7 +17,7 @@ var threshold = flag.Float64("threshold", 0, "The threshold for on/off values")
 
 var freq = flag.Int("freq", 60, "Sample publish frequency")
 
-var debug = flag.String("debug", "", "Debug mode")
+var debug = flag.String("debug", "", `Debug server address e.g. ":1234"`)
 
 func main() {
 	// parse flags
@@ -26,7 +25,6 @@ func main() {
 
 	// run debug
 	if *debug != "" {
-		god.Init(god.Options{})
 		go func() {
 			panic(http.ListenAndServe(*debug, uiHandler()))
 		}()
