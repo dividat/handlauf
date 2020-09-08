@@ -10,7 +10,7 @@ const list = [];
 const width = window.innerWidth - 100;
 const height = window.innerHeight - 100;
 
-const svg = d3.select('#viz');
+const svg = d3.select('svg');
 
 const xAxis = svg.append('g');
 const yAxis = svg.append('g');
