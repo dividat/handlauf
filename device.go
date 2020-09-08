@@ -36,7 +36,7 @@ func manage() {
 
 		// check devices
 		for _, name := range list {
-			if strings.Contains(name, "cu.usbmodem") {
+			if strings.Contains(name, *usbPrefix) {
 				if _, ok := devices.Load(name); !ok {
 					// add device
 					devices.Store(name, true)

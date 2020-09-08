@@ -19,6 +19,8 @@ var freq = flag.Int("freq", 60, "Sample publish frequency")
 
 var debug = flag.String("debug", "", `Debug server address e.g. ":1234"`)
 
+var usbPrefix = flag.String("usb-prefix", "cu.usbmodem", "The prefix of usb devices to consider")
+
 func main() {
 	// parse flags
 	flag.Parse()
