@@ -85,8 +85,11 @@ function viz() {
 const ws = new WebSocket('ws://0.0.0.0:8080');
 
 ws.onmessage = (event) => {
+  // get message
+  const msg = event.data.toString();
+
   // parse sample
-  const sample = JSON.parse(event.data.toString());
+  const sample = msg.split(',').map(v => parseFloat(v));
 
   // prepare entry
   const entry = {

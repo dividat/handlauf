@@ -1,9 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"sync"
 	"sync/atomic"
 
@@ -43,10 +43,13 @@ func stream(addr string) {
 }
 
 func emit(values sample) {
-	// encode
-	payload, err := json.Marshal(values)
-	if err != nil {
-		panic(err)
+	// build payload
+	payload := make([]byte, 0, 256)
+	for i, v := range values {
+		if i > 0 {
+			payload = append(payload, ',')
+		}
+		payload = strconv.AppendFloat(payload, v, 'f', 2, 64)
 	}
 
 	// broadcast
