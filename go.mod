@@ -3,6 +3,7 @@ module handlauf
 go 1.14
 
 require (
+	github.com/256dpi/embed v0.1.1 // indirect
 	github.com/VividCortex/gohistogram v1.0.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gorilla/websocket v1.4.2

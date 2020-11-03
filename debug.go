@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-//go:generate embedfiles -strings -pkg main -out ui_files.go debug/build
+//go:generate go run github.com/256dpi/embed -strings -pkg main -out ui_files.go debug/build
 
 func uiHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

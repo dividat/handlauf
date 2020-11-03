@@ -1,3 +1,5 @@
+github.com/256dpi/embed v0.1.1 h1:Y8kX+SkDk6G7WECbyIwgG8NHYcfMUZ93NJLWXb3R42g=
+github.com/256dpi/embed v0.1.1/go.mod h1:TyRVYP7Wq8XsgBeEyKGvipB/4xLr2EN9u3BdmIpxd7M=
 github.com/VividCortex/gohistogram v1.0.0 h1:6+hBz+qvs0JOrrNhhmR7lFxo5sINxBCGXrdtl/UvroE=
 github.com/VividCortex/gohistogram v1.0.0/go.mod h1:Pf5mBqqDxYaXu3hDrrU+w6nw50o/4+TcAqDqk/vUH7g=
 github.com/creack/goselect v0.1.1 h1:tiSSgKE1eJtxs1h/VgGQWuXUP0YS4CDIFMp6vaI1ls0=
