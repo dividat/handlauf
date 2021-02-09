@@ -1,0 +1,12 @@
+# github.com/VividCortex/gohistogram v1.0.0
+github.com/VividCortex/gohistogram
+# github.com/creack/goselect v0.1.1
+github.com/creack/goselect
+# github.com/gorilla/websocket v1.4.2
+github.com/gorilla/websocket
+# go.bug.st/serial v1.1.0
+go.bug.st/serial
+go.bug.st/serial/unixutils
+# golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e
+golang.org/x/sys/unix
+golang.org/x/sys/windows
